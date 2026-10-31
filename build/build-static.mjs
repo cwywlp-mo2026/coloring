@@ -432,13 +432,22 @@ async function syncSeoBlock(filePath, kind) {
     return;
   }
 
-  const block = kind === "index" ? buildIndexSeoBlock() : buildPaintSeoBlock();
-  const updated = html.slice(0, s) + block + html.slice(e);
+  // 先把重复的结束标记清掉（多次构建可能留下多个）
+  let cleaned = html.slice(0, e + end.length);
+  cleaned = cleaned.replace(
+    new RegExp(`(${end.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})+`, "g"),
+    end
+  );
+  cleaned += html.slice(e + end.length);
+
+  // 保留两个标记本身，只替换中间的内容
+  const inner = kind === "index" ? buildIndexSeoInner() : buildPaintSeoInner();
+  const updated = cleaned.slice(0, s + start.length) + inner + cleaned.slice(e);
   await writeFile(filePath, updated, "utf8");
   console.log(`  ✓ ${filePath.split(/[\\/]/).pop()} 已更新 SEO 标签`);
 }
 
-function buildIndexSeoBlock() {
+function buildIndexSeoInner() {
   const title = `${config.siteName} · 儿童在线填色`;
   const desc =
     "35 张可爱线稿免费涂：动物、花朵、交通工具、水果、恐龙、公主。" +
@@ -459,7 +468,7 @@ function buildIndexSeoBlock() {
     },
   };
 
-  return `    <!-- ===== SEO：让搜索引擎能理解并收录这个网站 ===== -->
+  return `
     <link rel="canonical" href="${SITE}/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${esc(config.siteName)}" />
@@ -479,12 +488,13 @@ function buildIndexSeoBlock() {
     <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 6).replace(/\n/g, "\n      ")}
     </script>
-    <!-- ===== /SEO ===== -->`;
+`;
 }
 
-function buildPaintSeoBlock() {
+function buildPaintSeoInner() {
   const image = `${SITE}/img/og-home.png`;
-  return `    <!-- 交互页本身不做收录，画册首页和 /paint/<id>.html 才是被索引的页面。
+  return `
+    <!-- 交互页本身不做收录，画册首页和 /paint/<id>.html 才是被索引的页面。
          但这里也加基础标签，方便分享链接时有标题和描述。 -->
     <meta name="robots" content="noindex,follow" />
     <meta property="og:title" content="免费儿童涂色 · ${esc(
@@ -496,9 +506,8 @@ function buildPaintSeoBlock() {
     <meta property="og:image" content="${image}" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- ===== SEO ===== -->
     <link rel="canonical" href="${SITE}/" />
-    <!-- ===== /SEO ===== -->`;
+`;
 }
 
 await main();
