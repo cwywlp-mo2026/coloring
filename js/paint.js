@@ -59,10 +59,14 @@ const els = {
   clearCancel: document.getElementById("clearCancel"),
 };
 
+/* 静态页在 /paint/ 下一层，动态页在根目录，返回路径不一样 */
+const isStaticPage = Boolean(prerenderedSvg);
+const homeHref = isStaticPage ? "../index.html" : "index.html";
+
 if (!art) {
   document.body.innerHTML =
     '<main style="padding:60px 24px;text-align:center;font-weight:800">' +
-    "找不到这张图，<a href='index.html'>回画册看看</a> 吧</main>";
+    `找不到这张图，<a href='${homeHref}'>回画册看看</a> 吧</main>`;
   throw new Error("artwork not found");
 }
 
@@ -597,7 +601,7 @@ if (els.backBtn) {
     // 是 <a> 就让它自己跳转，别拦
     if (els.backBtn.tagName === "A") return;
     if (history.length > 1) history.back();
-    else location.href = "index.html";
+    else location.href = homeHref;
   });
 }
 

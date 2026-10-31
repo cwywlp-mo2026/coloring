@@ -11,7 +11,6 @@
 #   4. 推上去后等 1 分钟，网站就上线了
 # ============================================================
 
-# 构建时把静态页面生成好（Node 环境）
 name: Deploy to GitHub Pages
 
 on:
@@ -41,16 +40,21 @@ jobs:
         with:
           node-version: "20"
 
-      - name: 安装依赖
-        run: npm install
-
       - name: 生成静态页面
         run: npm run build
+
+      - name: 整理待发布文件
+        run: |
+          mkdir -p _site
+          # 只要网站真正需要的文件，别把构建脚本和说明文档传上去
+          cp -r index.html paint.html css js img paint _site/
+          cp sitemap.xml robots.txt .nojekyll _site/
+          ls -la _site
 
       - name: 上传产物
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          path: "_site"
 
   deploy:
     needs: build
