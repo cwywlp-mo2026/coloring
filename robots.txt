@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# 静态生成，无需爬取 build 目录
+Disallow: /build/
+
+Sitemap: https://happy-coloring.example.com/sitemap.xml

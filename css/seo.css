@@ -1,0 +1,177 @@
+/* ==========================================================================
+   静态 SEO 页面的样式
+   ---------------------------------------------------------------
+   /paint/<id>.html 这类页面同时满足两件事：
+     1. 搜索引擎能直接读到线稿（SVG 写在 HTML 里）
+     2. 用户打开就能涂色（和 paint.html 一样的交互）
+   所以这里把「应用区」和「文字内容区」上下排开：
+     应用区 = 100dvh 一屏
+     文字区 = 往下滚动才看得到
+   ========================================================================== */
+
+/* 整页：不再强制一屏、也不再锁滚动 */
+.seo-page {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+  display: block;
+}
+
+/* 应用区：包住 topbar / stage / tools，自成一屏 */
+.seo-page .app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 静态页里线稿已经在 HTML 里了，
+   .paper 依然要撑满 stage */
+.seo-page .stage {
+  padding: 0 clamp(10px, 2.4vw, 26px);
+}
+
+/* 文字内容区 */
+.seo-content {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 34px clamp(14px, 3.6vw, 40px) 60px;
+  color: var(--c-text);
+  background: var(--c-bg);
+}
+
+.seo-intro h2,
+.seo-related h2 {
+  font-size: clamp(19px, 2.6vw, 24px);
+  font-weight: 900;
+  margin: 0 0 12px;
+  letter-spacing: 0.5px;
+}
+
+.seo-intro p {
+  font-size: 15px;
+  line-height: 1.85;
+  font-weight: 600;
+  color: #6b5f54;
+  margin: 0 0 12px;
+}
+
+.seo-intro strong {
+  color: var(--c-text);
+}
+
+.seo-intro kbd {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 7px;
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-line);
+  border-bottom-width: 2px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.seo-related {
+  margin-top: 34px;
+}
+
+/* 同类线稿的链接卡片 */
+.seo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.rel {
+  display: block;
+  padding: 11px 12px;
+  border-radius: var(--r-md);
+  background: var(--c-card);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  color: var(--c-text);
+  font-weight: 800;
+  font-size: 14px;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.rel:hover {
+  transform: translateY(-3px);
+}
+
+.rel__name {
+  display: block;
+  text-align: center;
+}
+
+/* 分类链接 */
+.seo-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.catlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  min-height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  box-shadow: 0 3px 0 var(--c-line);
+  text-decoration: none;
+  color: var(--c-text);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.catlink:hover {
+  background: var(--c-pink);
+  color: #fff;
+}
+
+/* 页脚 */
+.seo-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px dashed var(--c-line);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-soft);
+}
+
+/* 给搜索引擎看的隐藏文本块 */
+.seo-sr-only {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------- 打印：只印画，不要印工具栏和文字 ---------- */
+@media print {
+  .seo-page .app {
+    height: auto;
+    overflow: visible;
+  }
+  .seo-page .topbar,
+  .seo-page .tools,
+  .seo-page .modal,
+  .seo-page .toast,
+  .seo-content {
+    display: none !important;
+  }
+  .seo-page .stage {
+    padding: 0;
+  }
+  .seo-page .paper {
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: none;
+    border: none;
+  }
+}

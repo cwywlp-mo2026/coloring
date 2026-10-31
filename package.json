@@ -1,0 +1,11 @@
+{
+  "name": "happy-coloring",
+  "version": "1.0.0",
+  "private": true,
+  "description": "快乐涂色本 · 儿童在线填色小游戏（纯静态站点）",
+  "type": "module",
+  "scripts": {
+    "build": "node build/build-static.mjs",
+    "serve": "python -m http.server 8123 --bind 127.0.0.1"
+  }
+}

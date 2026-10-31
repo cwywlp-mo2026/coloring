@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#fdf8f3" />
+    <meta
+      name="description"
+      content="儿童填色小游戏：在线给小花猫、恐龙、公主、小汽车涂色，点开网页就能玩。"
+    />
+    <title>快乐涂色本 · 儿童在线填色</title>
+
+                <!-- ===== SEO：让搜索引擎能理解并收录这个网站 ===== -->
+    <link rel="canonical" href="https://happy-coloring.example.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="快乐涂色本" />
+    <meta property="og:title" content="快乐涂色本 · 儿童在线填色" />
+    <meta property="og:description" content="35 张可爱线稿免费涂：动物、花朵、交通工具、水果、恐龙、公主。点一下就上色，可保存图片和打印。" />
+    <meta property="og:url" content="https://happy-coloring.example.com/" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:image" content="https://happy-coloring.example.com/img/og-home.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="快乐涂色本 · 儿童在线填色" />
+    <meta name="twitter:description" content="35 张可爱线稿免费涂：动物、花朵、交通工具、水果、恐龙、公主。点一下就上色，可保存图片和打印。" />
+    <meta name="twitter:image" content="https://happy-coloring.example.com/img/og-home.png" />
+    <meta name="keywords" content="儿童填色,涂色游戏,在线涂色,免费涂色,幼儿涂色,Coloring game,kids coloring" />
+    <meta name="author" content="快乐涂色本" />
+    <script type="application/ld+json">
+{
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "快乐涂色本",
+            "url": "https://happy-coloring.example.com/",
+            "inLanguage": "zh-CN",
+            "description": "儿童在线填色小游戏，35 张可爱线稿：动物、花朵、交通工具、水果、恐龙、公主，打开网页就能涂色，作品保存在自己的设备上。",
+            "potentialAction": {
+                  "@type": "SearchAction",
+                  "target": "https://happy-coloring.example.com/?q={search_term_string}",
+                  "query-input": "required name=search_term_string"
+            }
+      }
+    </script>
+    <!-- ===== /SEO ===== --><!-- ===== /SEO ===== --><!-- ===== /SEO ===== --><!-- ===== /SEO ===== -->
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/home.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>"
+    />
+  </head>
+  <body>
+    <main class="home">
+      <!-- 顶部 -->
+      <header class="home__hero">
+        <div class="home__title-wrap">
+          <div class="home__logo" aria-hidden="true">🎨</div>
+          <div>
+            <h1 class="home__title">快乐<em>涂色</em>本</h1>
+            <p class="home__subtitle">挑一张喜欢的图，用手指点一点就上色啦</p>
+          </div>
+        </div>
+
+        <div class="home__hero-actions">
+          <button class="btn btn--ghost" id="continueBtn" type="button" hidden>
+            <span class="btn__icon" aria-hidden="true">🖌️</span>继续画
+          </button>
+          <button class="btn btn--ghost" id="popBtn" type="button">
+            <span class="btn__icon" aria-hidden="true">🎲</span>随便画一张
+          </button>
+          <button
+            class="btn btn--primary"
+            id="favBtn"
+            type="button"
+            aria-pressed="false"
+          >
+            <span class="btn__icon" aria-hidden="true">⭐</span>我的收藏
+          </button>
+        </div>
+      </header>
+
+      <!-- 分类条 -->
+      <nav class="cat-bar" aria-label="画册分类">
+        <div class="cat-bar__scroll" id="catBar"></div>
+      </nav>
+
+      <!-- 线稿列表 -->
+      <div class="gallery" id="gallery"></div>
+
+      <!-- 空状态 -->
+      <div class="empty" id="empty" hidden>
+        <span class="empty__emoji" aria-hidden="true">🐣</span>
+        <h2 class="empty__title" id="emptyTitle">这里空空的</h2>
+        <p class="empty__text" id="emptyText">换个分类看看吧</p>
+        <button class="btn btn--primary" id="emptyReset" type="button">
+          看全部图案
+        </button>
+      </div>
+
+      <footer class="home__footer">
+        用手指点一下区域就能上色 · 所有画作只保存在你自己的设备里
+      </footer>
+    </main>
+
+<!--
+  下面是给搜索引擎看的文字内容。
+  页面上看不见（放在 details 里），但能让搜索引擎理解这个网站是做什么的。
+-->
+<details class="seo-sr-only">
+  <summary>关于快乐涂色本</summary>
+  <h2>免费儿童在线填色游戏</h2>
+  <p>儿童在线填色小游戏，35 张可爱线稿：动物、花朵、交通工具、水果、恐龙、公主，打开网页就能涂色，作品保存在自己的设备上。</p>
+  <p>
+    本站提供 35 张儿童简笔画线稿，分为
+    小动物、花朵、交通工具、水果、恐龙、公主、小汽车 等分类。
+    每一张都可以在线涂色、撤销、保存成图片和打印。
+  </p>
+  <ul>
+    <li><a href="./paint/cat-01.html">小花猫涂色</a> - 小动物</li>
+    <li><a href="./paint/dog-01.html">小黄狗涂色</a> - 小动物</li>
+    <li><a href="./paint/rabbit-01.html">小白兔涂色</a> - 小动物</li>
+    <li><a href="./paint/bear-01.html">小熊涂色</a> - 小动物</li>
+    <li><a href="./paint/pig-01.html">小猪涂色</a> - 小动物</li>
+    <li><a href="./paint/panda-01.html">熊猫涂色</a> - 小动物</li>
+    <li><a href="./paint/fox-01.html">小狐狸涂色</a> - 小动物</li>
+    <li><a href="./paint/horse-01.html">小马涂色</a> - 小动物</li>
+    <li><a href="./paint/flower-01.html">向日葵涂色</a> - 花朵</li>
+    <li><a href="./paint/flower-02.html">郁金香涂色</a> - 花朵</li>
+    <li><a href="./paint/flower-03.html">小雏菊涂色</a> - 花朵</li>
+    <li><a href="./paint/flower-04.html">玫瑰花涂色</a> - 花朵</li>
+    <li><a href="./paint/flower-05.html">荷花涂色</a> - 花朵</li>
+    <li><a href="./paint/car-01.html">小轿车涂色</a> - 交通工具</li>
+    <li><a href="./paint/bus-01.html">小巴士涂色</a> - 交通工具</li>
+    <li><a href="./paint/plane-01.html">小飞机涂色</a> - 交通工具</li>
+    <li><a href="./paint/boat-01.html">小帆船涂色</a> - 交通工具</li>
+    <li><a href="./paint/train-01.html">小火车涂色</a> - 交通工具</li>
+    <li><a href="./paint/fruit-01.html">红苹果涂色</a> - 水果</li>
+    <li><a href="./paint/fruit-02.html">草莓涂色</a> - 水果</li>
+    <li><a href="./paint/watermelon-01.html">西瓜涂色</a> - 水果</li>
+    <li><a href="./paint/orange-01.html">橙子涂色</a> - 水果</li>
+    <li><a href="./paint/pear-01.html">梨涂色</a> - 水果</li>
+    <li><a href="./paint/grape-01.html">葡萄涂色</a> - 水果</li>
+    <li><a href="./paint/dino-01.html">霸王龙涂色</a> - 恐龙</li>
+    <li><a href="./paint/dino-02.html">剑龙涂色</a> - 恐龙</li>
+    <li><a href="./paint/dino-03.html">翼龙涂色</a> - 恐龙</li>
+    <li><a href="./paint/dino-04.html">长颈龙涂色</a> - 恐龙</li>
+    <li><a href="./paint/princess-01.html">小公主涂色</a> - 公主</li>
+    <li><a href="./paint/crown-01.html">皇冠涂色</a> - 公主</li>
+    <li><a href="./paint/castle-01.html">小城堡涂色</a> - 公主</li>
+    <li><a href="./paint/truck-01.html">消防车涂色</a> - 小汽车</li>
+    <li><a href="./paint/truck-02.html">挖掘机涂色</a> - 小汽车</li>
+    <li><a href="./paint/race-01.html">赛车涂色</a> - 小汽车</li>
+    <li><a href="./paint/jeep-01.html">小吉普涂色</a> - 小汽车</li>
+  </ul>
+</details>
+
+    <script type="module" src="js/home.js"></script>
+  </body>
+</html>

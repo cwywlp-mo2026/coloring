@@ -1,0 +1,25 @@
+# 依赖和构建缓存
+node_modules/
+npm-debug.log*
+package-lock.json.bak
+
+# 构建临时文件
+build/.tmp/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 本地环境
+.env
+.env.local
+
+# 生成结果（paint/*.html、sitemap.xml、robots.txt）故意提交进仓库，
+# 这样即使没有 Node 环境，直接拖到任何静态托管也能正常上线。
+# CI 里会重新生成一遍，保证内容是最新的。
