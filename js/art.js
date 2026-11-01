@@ -1126,7 +1126,6 @@ const jeep = {
    ================================================================== */
 
 export const ARTWORKS = [
-  cat,
   dog,
   bunny,
   bear,
@@ -1134,7 +1133,6 @@ export const ARTWORKS = [
   panda,
   fox,
   horse,
-  sunflower,
   tulip,
   daisy,
   rose,
@@ -1167,3 +1165,21 @@ export { shapeToD };
 
 // 启动时统一做一次自适应（超出画布或过小的线稿会被缩放到安全范围内）
 ARTWORKS.forEach((a) => fitToCanvas(a));
+
+/* ------------------------------------------------------------------
+   合并"图片线稿"
+   ---------------------------------------------------------------
+   js/art-image.js 里是从 PNG 转出来的漂亮线稿（build/build-image-arts.mjs 生成）。
+   它们的 id 和手写线稿可能重复，所以这里按 id 覆盖：
+   有同 id 的就替换掉手写版，没有的就追加。
+   ------------------------------------------------------------------ */
+import { IMAGE_ARTS } from "./art-image.js";
+
+for (const imgArt of IMAGE_ARTS) {
+  const idx = ARTWORKS.findIndex((a) => a.id === imgArt.id);
+  if (idx >= 0) {
+    ARTWORKS[idx] = imgArt;
+  } else {
+    ARTWORKS.push(imgArt);
+  }
+}

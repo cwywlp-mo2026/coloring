@@ -453,7 +453,7 @@ els.clearOk.addEventListener("click", () => {
    保存 PNG
    ================================================================== */
 
-function serializeSvg() {
+async function serializeSvg() {
   const clone = svg.cloneNode(true);
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
@@ -494,6 +494,10 @@ function serializeSvg() {
     el.removeAttribute("style");
   });
 
+  // 图片线稿的轮廓线是 <image>，导出 PNG 时浏览器不会去加载相对路径的图片，
+  // 所以必须提前把它转成 base64 内嵌进去，否则导出的图会没有线条。
+  await inlineImages(clone);
+
   // 尺寸严格按 viewBox 比例，导出时不会被拉伸
   clone.setAttribute("width", String(vbW));
   clone.setAttribute("height", String(vbH));
@@ -502,11 +506,41 @@ function serializeSvg() {
 }
 
 /**
+ * 把 SVG 里的 <image href="相对路径"> 换成 base64 内嵌
+ * ---------------------------------------------------------------
+ * 浏览器的 canvas 绘制 SVG 时处于"沙箱"状态，不会去加载外部图片，
+ * 所以导出 PNG 前必须把图片转成 data URI。
+ */
+async function inlineImages(clone) {
+  const images = [...clone.querySelectorAll("image")];
+  for (const img of images) {
+    const href = img.getAttribute("href") || img.getAttribute("xlink:href");
+    if (!href || href.startsWith("data:")) continue;
+
+    try {
+      const abs = new URL(href, location.href).href;
+      const res = await fetch(abs);
+      const blob = await res.blob();
+      const dataUrl = await new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = reject;
+        fr.readAsDataURL(blob);
+      });
+      img.setAttribute("href", dataUrl);
+      img.removeAttribute("xlink:href");
+    } catch (err) {
+      console.warn("图片内联失败：", href, err);
+    }
+  }
+}
+
+/**
  * 导出 PNG
  * 画布尺寸按 viewBox 的真实比例算，避免把画作压扁成正方形。
  */
 async function exportPng(scale = 3) {
-  const svgStr = serializeSvg();
+  const svgStr = await serializeSvg();
   const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 

@@ -101,6 +101,9 @@
   height: 100%;
   max-width: 780px;
   max-height: 100%;
+  /* 保持正方形，线稿不会被压扁 */
+  aspect-ratio: 1 / 1;
+  margin: auto;
   background: #fff;
   border-radius: var(--r-lg);
   box-shadow: 0 14px 34px rgba(180, 155, 135, 0.24),
@@ -504,7 +507,9 @@
     max-width: none;
     max-height: none;
     width: 100%;
-    height: 92vh;
+    /* 手机上按宽度算正方形高度，避免线稿被压扁 */
+    height: auto;
+    aspect-ratio: 1 / 1;
     border-radius: 0;
   }
 }

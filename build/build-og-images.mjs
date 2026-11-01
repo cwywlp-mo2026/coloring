@@ -56,7 +56,15 @@ async function findBrowser() {
 
 function buildOgHtml(art) {
   const cat = CATEGORY_MAP[art.category] || { name: "", emoji: "" };
-  const svg = artToSvgMarkup(art, { mode: "thumb" });
+
+  // 图片线稿的轮廓线是单独的图片文件。
+  // OG 配图是用 file:// 打开的临时 HTML，相对路径会指错地方，
+  // 所以这里换成绝对路径。
+  let inkAbs = "";
+  if (art.regions && art.ink) {
+    inkAbs = pathToFileURL(join(ROOT, art.ink)).href;
+  }
+  const svg = artToSvgMarkup(art, { mode: "thumb", assetBase: "", inkAbs });
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>

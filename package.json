@@ -8,6 +8,8 @@
     "build": "node build/build-static.mjs",
     "build:og": "node build/build-og-images.mjs && node build/build-og-home.mjs",
     "build:all": "npm run build && npm run build:og",
+    "build:images": "node build/build-image-arts.mjs",
+    "convert": "python build/png-to-regions.py",
     "serve": "python -m http.server 8123 --bind 127.0.0.1"
   }
 }

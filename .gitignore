@@ -23,3 +23,7 @@ desktop.ini
 # 生成结果（paint/*.html、sitemap.xml、robots.txt）故意提交进仓库，
 # 这样即使没有 Node 环境，直接拖到任何静态托管也能正常上线。
 # CI 里会重新生成一遍，保证内容是最新的。
+
+# 下载的原始素材和转换中间产物（太大，不进仓库）
+# 真正的成品（img/ink/*.ink.png、js/art-image.js）是生成后提交的。
+downloads/out/

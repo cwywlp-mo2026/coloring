@@ -96,7 +96,8 @@ function buildArtPage(art) {
     `点一下区域就能上色，可保存成图片或打印。`;
 
   // 内联 SVG：不用 JS 也能显示，搜索引擎直接读得到
-  const svgMarkup = artToSvgMarkup(art, { mode: "paint" });
+  // 静态页在 /paint/ 下一层，图片线稿的轮廓线要加 "../" 前缀
+  const svgMarkup = artToSvgMarkup(art, { mode: "paint", assetBase: "../" });
 
   // 同分类的其他线稿，做内链
   const siblings = ARTWORKS.filter(
