@@ -71,6 +71,9 @@ function seoTags({
     `<meta name="twitter:title" content="${esc(title)}" />`,
     `<meta name="twitter:description" content="${esc(description)}" />`,
     `<meta name="twitter:image" content="${esc(image)}" />`,
+    // 百度专用：明确告诉爬虫手机端同样收录
+    `<meta name="applicable-device" content="pc,mobile" />`,
+    `<meta name="mobile-agent" content="format=html5; url=${esc(url)}" />`,
   ];
   if (jsonLd) {
     tags.push(
@@ -342,8 +345,38 @@ Allow: /
 # 静态生成，无需爬取 build 目录
 Disallow: /build/
 
+# 百度蜘蛛
+User-agent: Baiduspider
+Allow: /
+Disallow: /build/
+
+# 百度手机搜索
+User-agent: Baiduspider-render
+Allow: /
+
 Sitemap: ${SITE}/sitemap.xml
 `;
+}
+
+/**
+ * 生成 baidu_verify_*.html 的说明（如果用户已经放了验证文件，就不动它）
+ * ---------------------------------------------------------------
+ * 百度站长平台选「文件验证」时，会给一个文件名：
+ *   baidu_verify_xxxxx.html
+ * 把文件放到网站根目录就能验证，不用改代码。
+ */
+async function ensureBaiduVerifySlot() {
+  const files = await readdir(ROOT);
+  const exists = files.some(
+    (f) => f.startsWith("baidu_verify_") && f.endsWith(".html")
+  );
+  if (exists) {
+    console.log("  ✓ 已存在百度验证文件，跳过");
+    return;
+  }
+  console.log(
+    "  - 百度验证文件还没放进来（拿到后放到项目根目录再 git push 即可）"
+  );
 }
 
 /* ------------------------------------------------------------------
@@ -402,6 +435,9 @@ async function main() {
   //    用户只改一个配置文件，不用去 HTML 里到处找
   await syncSeoBlock(indexPath, "index");
   await syncSeoBlock(join(ROOT, "paint.html"), "paint");
+
+  // 7. 百度验证文件的提示
+  await ensureBaiduVerifySlot();
 
   console.log("\n完成。下一步：");
   if (config.siteUrl.includes("example.com")) {
@@ -485,6 +521,9 @@ function buildIndexSeoInner() {
     <meta name="twitter:image" content="${image}" />
     <meta name="keywords" content="${esc(config.keywords)}" />
     <meta name="author" content="${esc(config.author)}" />
+    <!-- 百度专用：告诉爬虫这个页面在手机上也能正常显示 -->
+    <meta name="applicable-device" content="pc,mobile" />
+    <meta name="mobile-agent" content="format=html5; url=${SITE}/" />
     <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 6).replace(/\n/g, "\n      ")}
     </script>
