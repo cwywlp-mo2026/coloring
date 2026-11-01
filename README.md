@@ -26,7 +26,23 @@ npx serve .
 
 ## 二、发布到互联网（让人人都能搜到）
 
+> **当前线上地址**：<https://cwywlp-mo2026.github.io/coloring/>
+> 仓库：<https://github.com/cwywlp-mo2026/coloring>
+
 整个网站是纯静态文件，**不需要服务器、不需要数据库**，丢到任何静态托管都能跑。
+
+### 日常更新流程（已经配好自动化）
+
+改完代码后只要一条命令：
+
+```bash
+git push origin main
+```
+
+GitHub Actions 会自动：构建静态页面 → 生成 35 个可收录页面 → 推送到 `gh-pages` → 网站更新，约 1 分钟。
+
+> ⚠️ 改 `site.config.json` 里的域名后，要先在本地跑 `npm run build` 再提交，
+> 否则 CI 会用旧域名重新生成一遍（CI 也会跑 build，但本地跑一次能提前发现拼写错误）。
 
 ### 第 1 步：填上你的域名
 
@@ -67,7 +83,7 @@ npm run build
 3. 构建命令填 `npm run build`，输出目录填 `.`
 4. 部署完会得到 `https://项目名.pages.dev`
 
-#### 方案 C：GitHub Pages（最长期稳定）
+#### 方案 C：GitHub Pages（最长期稳定）✅ 本项目当前使用
 
 1. 在 GitHub 上新建一个 **Public** 仓库（名字随意，比如 `coloring`）
 2. 把本项目推上去：
@@ -77,10 +93,19 @@ git remote add origin https://github.com/你的用户名/coloring.git
 git push -u origin main
 ```
 
-3. 仓库 → Settings → Pages → Source 选 **GitHub Actions**
+3. 仓库 → Settings → Pages → **Build and deployment**：
+   - **Source** → `Deploy from a branch`
+   - **Branch** → `gh-pages`
+   - **Folder** → `/ (root)`
+   - **Custom domain** → 留空
 4. 等 1–2 分钟，网站就上线了：`https://你的用户名.github.io/coloring/`
 
-`.github/workflows/deploy.yml` 已经配好，推代码就会自动重新构建并发布。
+> **为什么用 gh-pages 分支而不是 GitHub Actions？**
+> 默认的 `deploy-pages` 动作会走 `github-pages` 环境，而这个环境可能带分支保护规则，
+> 一旦策略没放行当前分支就会报
+> `Branch "main" is not allowed to deploy to github-pages due to environment protection rules.`
+> 经典分支方式直接把构建产物推到 `gh-pages` 分支，完全不走环境，稳得多。
+> 工作流已经配好：**推 `main` → 自动构建 → 自动推到 `gh-pages` → 自动上线**。
 
 #### 方案 D：Vercel
 
