@@ -66,3 +66,10 @@ jobs:
       - name: 部署
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # 自动开启 Pages 功能（省得再去 Settings 里手动点一次）
+          # 如果仓库设置里没给 Actions 写权限，这里会失败，
+          # 需要在 Settings → Actions → General 里勾上
+          # "Allow GitHub Actions to create and approve pull requests"
+          # 或直接用管理员账号在 Settings → Pages 里把 Source 选成 GitHub Actions
+          enablement: true
