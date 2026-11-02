@@ -24,11 +24,29 @@ const META = {
     category: "animal",
     source: "downloads/4253244.png",
   },
-  "OIP-C": {
+  "flower-new": {
     id: "flower-01",
     name: "小花朵",
     category: "flower",
-    source: "downloads/OIP-C.webp",
+    source: "downloads/flower-new.webp",
+  },
+  "dog-new": {
+    id: "dog-01",
+    name: "小黄狗",
+    category: "animal",
+    source: "downloads/dog-new.jpg",
+  },
+  "rabbit-new": {
+    id: "rabbit-01",
+    name: "小白兔",
+    category: "animal",
+    source: "downloads/rabbit-new.webp",
+  },
+  "pig-new": {
+    id: "pig-01",
+    name: "小粉猪",
+    category: "animal",
+    source: "downloads/pig-new.png",
   },
 };
 
