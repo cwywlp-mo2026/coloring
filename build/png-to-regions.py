@@ -143,10 +143,19 @@ def find_background(closed, W, H):
     保证四个角一定是白的，漫水一定能开始。
     补完再裁回来。
 
+    坑 2（真·元凶）：补边补反了
+       `closed` 里 255 = 线，0 = 可以走的空白。
+       所以补的边必须是 **0**（空白），漫水才能从角落进来。
+       如果补成 255，四个角全是"线"，漫水一步都走不了，
+       背景永远找不出来 —— 结果整张画布变成一个可点击区域，
+       线上就出现过这种区域：M4,4 L4,995 L995,995 L995,4 Z
+       小朋友点一下整张图被填满，看起来就是"有背景"。
+
     返回：背景掩膜（255 = 背景）
     """
     pad = max(4, int(min(W, H) * 0.01))
-    P = np.pad(closed, pad, constant_values=255)
+    # 补边必须是 0（= 可以走的空白），见上面的「坑 2」
+    P = np.pad(closed, pad, constant_values=0)
 
     h, w = P.shape
     ff_mask = np.zeros((h + 2, w + 2), np.uint8)
@@ -162,18 +171,86 @@ def find_background(closed, W, H):
     return background
 
 
+def load_source(src):
+    """
+    读源图，处理两种特殊情况
+    ---------------------------------------------------------------
+    坑 1：LA 模式（亮度 + 透明度）
+        有些素材（比如猫那张 4253244.png）是 "LA" 模式：
+        亮度通道全是 0，线稿画在**透明度**通道里。
+        直接 convert("RGBA") 会得到一张纯黑的图，
+        因为 RGB 全黑、alpha 有值，合成到白底上就是一片黑。
+
+        正确做法：把透明度通道当成灰度图来用。
+
+    坑 2：透明底
+        透明的地方要先铺白，否则算出来的"背景"是黑的。
+
+    返回 (RGB 图, 透明度掩膜 或 None)
+    """
+    raw = Image.open(src)
+    if raw.mode == "LA":
+        a = np.array(raw)
+        alpha = a[..., 1]
+        # 线稿 = 透明度高的地方。用它当灰度（深=线稿）
+        gray_from_alpha = 255 - alpha
+        img = Image.fromarray(gray_from_alpha, "L").convert("RGB")
+        return img, alpha
+
+    img = raw.convert("RGBA")
+    bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    return Image.alpha_composite(bg, img).convert("RGB"), None
+
+
+def clean_background(img, thresh=205):
+    """
+    刷掉浅色背景 + 裁到内容
+    ---------------------------------------------------------------
+    用户给的线稿素材大多带一个浅灰的"相框"矩形，
+    用户明确要求"只要线稿，不要背景"。
+
+    这个框是**浅灰填充**（不是黑线），所以：
+      1. 把浅于阈值的像素刷成纯白 → 框没了，框里面的浅灰底也没了
+      2. 裁到剩下的内容 bbox → 去掉四周空白
+
+    顺带的好处：线稿里那些浅灰的"阴影/毛絮"也会被清掉，
+    剩下的都是实打实的线，更接近真正的线稿。
+    """
+    rgb = np.array(img.convert("RGB"))
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+
+    out = rgb.copy()
+    out[gray >= thresh] = 255
+
+    ink = gray < thresh
+    ys, xs = np.where(ink)
+    if len(xs) == 0:
+        return img
+
+    pad = max(2, int(min(img.size) * 0.02))
+    x0 = max(0, int(xs.min()) - pad)
+    x1 = min(img.size[0] - 1, int(xs.max()) + pad)
+    y0 = max(0, int(ys.min()) - pad)
+    y1 = min(img.size[1] - 1, int(ys.max()) + pad)
+    if x1 <= x0 or y1 <= y0:
+        return img
+    return Image.fromarray(out[y0 : y1 + 1, x0 : x1 + 1])
+
+
 def convert(src, out_dir=None, min_area=260, target_w=1000, ink_dir=None,
-            color_mode="auto", force_solid=False):
+            color_mode="auto", force_solid=False, strip_frame=True):
     src = Path(src)
     out_dir = Path(out_dir) if out_dir else src.parent / "out"
     out_dir.mkdir(parents=True, exist_ok=True)
     ink_dir = Path(ink_dir) if ink_dir else out_dir
     ink_dir.mkdir(parents=True, exist_ok=True)
 
-    # ---------- 读图（透明底先铺白） ----------
-    img = Image.open(src).convert("RGBA")
-    bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
-    img = Image.alpha_composite(bg, img).convert("RGB")
+    # ---------- 读图（透明底先铺白；LA 模式特殊处理） ----------
+    img, _ = load_source(src)
+
+    # ---------- 去掉浅灰背景 / 装饰边框 ----------
+    if strip_frame:
+        img = clean_background(img)
 
     W, H = img.size
     scale = target_w / W
@@ -193,12 +270,30 @@ def convert(src, out_dir=None, min_area=260, target_w=1000, ink_dir=None,
     )
 
     # 判断是"线稿"还是"实心块"
-    #   线稿：黑色只占很小一部分（<12%），大部分是白的
-    #   实心：黑色占比大（>12%），说明图形被填满了
-    dark_ratio = float((gray < 128).mean())
+    #
+    # 坑：光看"黑色占比"会误判。
+    #   猫那张图黑色占 29%，但它是标准白底线稿（黑线 + 白底）；
+    #   实心插画（比如填充的狗）黑色也占 30%+，
+    #   但它的黑色是**成片的**，不是**细线**。
+    #
+    # 区分办法：看"最暗的那部分像素有多连贯"。
+    #   线稿 → 深色像素是细线状，宽度只有几个像素
+    #   实心 → 深色像素是成片的，宽度几十上百像素
+    #
+    # 用距离变换量一下深色区域的"厚度"：
+    # 到最近背景像素的距离，大 = 实心块，小 = 线条。
+    dark_mask = (gray < 128).astype(np.uint8)
+    if dark_mask.any():
+        dist = cv2.distanceTransform(dark_mask, cv2.DIST_L2, 5)
+        # 95 分位的距离 ≈ 线条的典型宽度
+        line_thickness = float(np.percentile(dist[dist > 0], 95))
+    else:
+        line_thickness = 0.0
+
+    # 线条粗细超过 6 像素，就认为是"实心画法"
     is_solid = force_solid or (
         color_mode == "solid"
-        or (color_mode == "auto" and dark_ratio > 0.12)
+        or (color_mode == "auto" and line_thickness > 6.0)
     )
 
     # ---------- 提取线条 ----------
@@ -232,8 +327,7 @@ def convert(src, out_dir=None, min_area=260, target_w=1000, ink_dir=None,
         background = find_background(bg_closed, W, H)
         regions = cv2.bitwise_and(solid, 255 - background)
         lines = cv2.Canny(gray, 40, 120)
-    else:
-        # 普通线稿。
+    else:        # 普通线稿。
         #
         # 用"从图片边缘往里漫水"的办法找背景 ——
         # 从四个角出发，凡是能从边缘连通到的白色，都是背景；
@@ -257,23 +351,30 @@ def convert(src, out_dir=None, min_area=260, target_w=1000, ink_dir=None,
         regions[:, :border] = 0
         regions[:, -border:] = 0
 
-        # 去掉碎块
-        n, labels, stats, _ = cv2.connectedComponentsWithStats(regions, 8)
-        clean = np.zeros_like(regions)
-        for i in range(1, n):
-            if stats[i, cv2.CC_STAT_AREA] >= min_area:
-                clean[labels == i] = 255
-
-        # ---------- 逐个区域提取路径 ----------
-        n2, labels2, stats2, _ = cv2.connectedComponentsWithStats(clean, 8)
-        order = sorted(
-            range(1, n2), key=lambda i: stats2[i, cv2.CC_STAT_AREA], reverse=True
-        )
-        paths = []
-        for i in order:
-            d = to_svg_path((labels2 == i).astype(np.uint8) * 255)
-            if d:
-                paths.append(d)
+    # ---------- 逐个区域提取路径 ----------
+    # 去掉碎块（太小的块不单独给小朋友涂，点了也看不见）
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(regions, 8)
+    order = sorted(
+        range(1, n), key=lambda i: stats[i, cv2.CC_STAT_AREA], reverse=True
+    )
+    paths = []
+    canvas_area = W * H
+    for i in order:
+        area = stats[i, cv2.CC_STAT_AREA]
+        if area < min_area:
+            continue
+        # 去掉"整张画布"那一大块
+        #
+        # 坑：线稿最外圈如果没有封闭（比如线画到边缘就断了），
+        # 漫水法找不到背景，于是整张图变成一个可点击区域。
+        # 线上就出现过这种区域：M4,4 L4,995 L995,995 L995,4 Z
+        # 小朋友点一下，整张画布被填满，看起来像"有背景"。
+        #  用户要的是"只要线稿，不要背景"，所以这里必须剔掉。
+        if area > canvas_area * 0.80:
+            continue
+        d = to_svg_path((labels == i).astype(np.uint8) * 255)
+        if d:
+            paths.append(d)
 
     # ---------- 轮廓线 PNG（透明底 + 黑线） ----------
     if is_solid:
@@ -288,19 +389,46 @@ def convert(src, out_dir=None, min_area=260, target_w=1000, ink_dir=None,
         )
         ink = cv2.bitwise_or(edge, solid_edges)
     else:
-        # 黑白线稿：用原图的暗部
-        ink = 255 - np.array(img.convert("L"))
+        # 黑白线稿：轮廓线 = 原图暗部，但要"提纯"一下。
+
+        # 为什么不能直接用 255 - 原图？
+        #   JPEG / WebP 压缩会在整张图上留下浅灰噪点，
+        #   "255 - 灰度"会把这些噪点也变成半透明的墨迹，
+        #   结果整张线稿蒙上一层灰雾，颜色全被污染。
+        #   （实测小猪的 ink 图有 87% 的像素是半透明的）
+
+        # 做法：
+        #   1. `lines` 是经过阈值 + 形态学清理的纯线条（没有噪点）
+        #   2. `raw` 是原图暗部（保留细节，但有噪点）
+        #   3. 只保留"既在 lines 里、又是原图深色"的像素 —— 取交集
+        #   4. 再把原图里"很深的线但 lines 漏了"的补回来 —— 取并集
+        raw = 255 - np.array(img.convert("L"))
+        raw[raw < 96] = 0  # 丢掉浅灰噪点，只留真正的墨迹
+
+        ink = cv2.bitwise_and(lines, raw)      # 交集：干净
+        extra = cv2.bitwise_and(raw, cv2.bitwise_not(lines))
+        ink = cv2.bitwise_or(ink, extra)        # 并集：补漏
+
+    # ---------- 清除半透明噪点 ----------
+    # 线条应该是"要么有、要么没有"，不该有一片半灰。
+    # 把透明度低于阈值的像素直接归零，只留下实心线条。
+    ink_alpha = ink.copy()
+    if is_solid:
+        ink_alpha[ink_alpha < 100] = 0
+    else:
+        ink_alpha[ink_alpha < 128] = 0
+
     # 加粗：线宽要按图片尺寸算，保证缩略图（约 120px）和画布（约 600px）
     # 里看起来一样清楚。基础线宽是 1024px 图上的 9px。
     lw = max(3, int(round(W * 0.009)) | 1)
-    ink = cv2.dilate(
-        ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (lw, lw)), iterations=1
+    ink_alpha = cv2.dilate(
+        ink_alpha, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (lw, lw)), iterations=1
     )
     ink_rgba = np.zeros((H, W, 4), np.uint8)
     ink_rgba[..., 0] = 40  # 深棕黑，和手写线稿一致
     ink_rgba[..., 1] = 36
     ink_rgba[..., 2] = 32
-    ink_rgba[..., 3] = ink
+    ink_rgba[..., 3] = ink_alpha
 
     ink_path = ink_dir / f"{src.stem}.ink.png"
     Image.fromarray(ink_rgba, "RGBA").save(ink_path)
@@ -343,12 +471,19 @@ if __name__ == "__main__":
         args.remove("--solid")
         color_mode = "solid"
 
+    # 支持 --keep-frame 不裁掉装饰边框（默认会裁掉）
+    strip_frame = True
+    if "--keep-frame" in args:
+        args.remove("--keep-frame")
+        strip_frame = False
+
     for a in args:
         j, ink, count = convert(
             a,
             min_area=min_area,
             color_mode="solid" if color_mode == "solid" else "auto",
             force_solid=(color_mode == "solid"),
+            strip_frame=strip_frame,
         )
         print(f"{Path(a).name}")
         print(f"  regions -> {j}  ({count} areas)")
