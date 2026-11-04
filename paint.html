@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#fdf8f3" />
+    <title>涂色中 · 快乐涂色本</title>
+
+        <!-- 交互页本身不做收录，画册首页和 /paint/<id>.html 才是被索引的页面。
+         但这里也加基础标签，方便分享链接时有标题和描述。 -->
+    <meta name="robots" content="noindex,follow" />
+    <meta property="og:title" content="免费儿童涂色 · 快乐涂色本" />
+    <meta property="og:description" content="35 张可爱线稿，点一下就上色，可保存图片和打印。" />
+    <meta property="og:image" content="https://cwywlp-mo2026.github.io/coloring/img/og-home.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- ===== SEO：让搜索引擎能理解并收录这个网站 ===== -->
+    <!-- 交互页本身不做收录，画册首页和 /paint/<id>.html 才是被索引的页面。
+         但这里也加基础标签，方便分享链接时有标题和描述。 -->
+    <meta name="robots" content="noindex,follow" />
+    <meta property="og:title" content="免费儿童涂色 · 快乐涂色本" />
+    <meta property="og:description" content="35 张可爱线稿，点一下就上色，可保存图片和打印。" />
+    <meta property="og:image" content="https://cwywlp-mo2026.github.io/coloring/img/og-home.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="canonical" href="https://cwywlp-mo2026.github.io/coloring/" />
+<!-- ===== /SEO ===== -->
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/paint.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖌️</text></svg>"
+    />
+  </head>
+  <body class="paint-page">
+    <!-- 顶部栏 -->
+    <header class="topbar">
+      <button
+        class="icon-btn"
+        id="backBtn"
+        type="button"
+        aria-label="返回画册"
+        title="返回画册"
+      >
+        ←
+      </button>
+
+      <div class="topbar__title">
+        <div class="topbar__name" id="artName">加载中…</div>
+        <div class="topbar__meta" id="artMeta">点一下色块，再点图案就能上色</div>
+      </div>
+
+      <div class="topbar__actions">
+        <button
+          class="icon-btn"
+          id="undoBtn"
+          type="button"
+          aria-label="撤销上一步"
+          title="撤销上一步"
+          disabled
+        >
+          ↶
+        </button>
+        <button
+          class="icon-btn"
+          id="printBtn"
+          type="button"
+          aria-label="打印这张画"
+          title="打印这张画"
+        >
+          🖨️
+        </button>
+        <button
+          class="icon-btn"
+          id="saveBtn"
+          type="button"
+          aria-label="保存图片"
+          title="保存图片"
+        >
+          ⬇️
+        </button>
+      </div>
+    </header>
+
+    <!-- 画布 -->
+    <div class="stage">
+      <div class="paper" id="paper"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="tools">
+      <div class="tools__inner">
+        <div class="tool-row" id="toolRow" role="group" aria-label="工具">
+          <button
+            class="tool tool--danger"
+            id="clearBtn"
+            type="button"
+            aria-label="清空画布"
+          >
+            <span class="tool__icon" aria-hidden="true">🧼</span>
+            <span>清空</span>
+          </button>
+        </div>
+
+        <div
+          class="palette"
+          id="palette"
+          role="group"
+          aria-label="调色板"
+        ></div>
+      </div>
+    </div>
+
+    <!-- 清空确认 -->
+    <div class="modal" id="clearModal" hidden>
+      <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+        <span class="modal__emoji" aria-hidden="true">🧼</span>
+        <h2 class="modal__title" id="clearTitle">要把画擦干净吗？</h2>
+        <p class="modal__text">擦掉就回不去了哦，要重新涂一遍</p>
+        <div class="modal__btns">
+          <button class="btn btn--ghost" id="clearCancel" type="button">
+            再想想
+          </button>
+          <button class="btn btn--primary" id="clearOk" type="button">
+            擦干净
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="js/paint.js"></script>
+  </body>
+</html>
