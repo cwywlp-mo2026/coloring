@@ -18,11 +18,11 @@ const INK_DIR = join(ROOT, "img", "ink");
 
 /* 每张图的元信息：id、名字、分类、源文件名 */
 const META = {
-  "4253244": {
+  "cat-new": {
     id: "cat-01",
     name: "小花猫",
     category: "animal",
-    source: "downloads/4253244.png",
+    source: "downloads/cat-new.png",
   },
   "flower-new": {
     id: "flower-01",
